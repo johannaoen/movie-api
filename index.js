@@ -13,6 +13,11 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
+let auth = require('./auth')(app);
+
+const passport = require('passport');
+require('./passport');
+
 app.use(morgan('common'));
 
 
@@ -20,11 +25,13 @@ let users = [
   {
     id : 1,
     name : 'Johanna',
+    username: 'Johanna1',
     favoriteMovies: ['Frozen']
   },
   {
     id : 2,
     name : 'Bob',
+    username : 'Bob2', 
     favoriteMovies: ['Harry Potter 1']
   },
 ]
@@ -95,8 +102,15 @@ app.get('/', (req, res) => {
   res.send(responseText);
 });
 //Gets data on ALL movies
-app.get('/movies', (req, res) => {
-res.status(200).json(movies);
+app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
+  Movies.find()
+    .then((movies) => {
+      res.status(201).json(movies);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send('Error: ' + error);
+    });
 });
 //Gets data about single movie by title
 app.get('/movies/:title', (req, res) => {
@@ -135,14 +149,14 @@ app.get('/movies/director/:directorName', (req, res) => {
 })
 //allow new users to register
 app.post('/users', (req, res) => {
-let newUser = req.body;
+let newUser = req.body; //this is possible due to the body parser
 
 if (newUser.name){
-  newUser.id = uuid.v4();
+  newUser.id = uuid.v4(); //uuid.v4() generates unique id
   users.push(newUser);
-  res.status(201).send(newUser);
+  res.status(201).json(newUser);
 }else {
-  res.status(400).send('New user requires name');
+ res.status(400).send('New user requires name');
 }
 });
 //allow user to update info (username)
@@ -204,4 +218,4 @@ app.delete('/users/:name/:movieTitle', (req, res) => {
 
 app.listen(8080, () => {
   console.log('Your app is listening on port 8080.');
-});
+}); 
