@@ -13,6 +13,19 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
+const cors = require ('cors');
+let allowedOrigins = ['*'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if(!origin) return callback (null, true);
+    if(allowedOrigins.indexOf(origin) === -1){//if a specific origin isn't found on the list of allowed origins
+    let message = 'The CORS policy for this application doesnt allow access from origin' + origin;
+  return callback(new Error(message), false);
+}
+return callback(null, true);
+  }
+}));
+
 let auth = require('./auth')(app);
 
 const passport = require('passport');
@@ -25,13 +38,15 @@ let users = [
   {
     id : 1,
     name : 'Johanna',
-    username: 'Johanna1',
+    username: 'johanna123',
+    password: '1234',
     favoriteMovies: ['Frozen']
   },
   {
     id : 2,
     name : 'Bob',
     username : 'Bob2', 
+    password: '12345',
     favoriteMovies: ['Harry Potter 1']
   },
 ]
@@ -150,15 +165,16 @@ app.get('/movies/director/:directorName', (req, res) => {
 //allow new users to register
 app.post('/users', (req, res) => {
 let newUser = req.body; //this is possible due to the body parser
-
-if (newUser.name){
-  newUser.id = uuid.v4(); //uuid.v4() generates unique id
+if (newUser.username){
+ newUser.id = uuid.v4(); //uuid.v4() generates unique id
   users.push(newUser);
   res.status(201).json(newUser);
 }else {
- res.status(400).send('New user requires name');
+ res.status(400).send('New user requires username');
 }
 });
+
+
 //allow user to update info (username)
 app.put('/users/:name/:username', (req, res) => {
   let user = users.find((user) => {return user.name === req.params.name });
