@@ -4,47 +4,49 @@ const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const uuid = require('uuid');
+const mongoose = require('mongoose');
+const fs = require('fs');
+const Models = require('./models.js');
 
-
-
-fs = require('fs'),
 path = require('path');
+
+
 app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
-const cors = require ('cors');
-let allowedOrigins = ['*'];
-app.use(cors({
-  origin: (origin, callback) => {
-    if(!origin) return callback (null, true);
-    if(allowedOrigins.indexOf(origin) === -1){//if a specific origin isn't found on the list of allowed origins
-    let message = 'The CORS policy for this application doesnt allow access from origin' + origin;
-  return callback(new Error(message), false);
-}
-return callback(null, true);
-  }
-}));
+//const cors = require ('cors');
+//let allowedOrigins = ['*'];
+//app.use(cors({
+  //origin: (origin, callback) => {
+   // if(!origin) return callback (null, true);
+   // if(allowedOrigins.indexOf(origin) === -1){//if a specific origin isn't found on the list of allowed origins
+   // let message = 'The CORS policy for this application doesnt allow access from origin' + origin;
+ // return callback(new Error(message), false);
+//}
+//return callback(null, true);
+//  }
+//}));
 
-let auth = require('./auth')(app);
+require('./auth')(app);
 
 const passport = require('passport');
 require('./passport');
-
 app.use(morgan('common'));
+app.use(express.static('public'));
 
 
 let users = [
   {
-    id : 1,
-    name : 'Johanna',
+    id: 1,
+    name: 'Johanna',
     username: 'johanna123',
     password: '1234',
     favoriteMovies: ['Frozen']
   },
   {
-    id : 2,
-    name : 'Bob',
+    id: 2,
+    name: 'Bob',
     username : 'Bob2', 
     password: '12345',
     favoriteMovies: ['Harry Potter 1']
@@ -173,6 +175,24 @@ if (newUser.username){
  res.status(400).send('New user requires username');
 }
 });
+
+//app.post('/users', (req,res) => {
+ // let hashedPassword = Users.hashPassword(req.body.Password);
+ // Users.findOne({Username: req.body.Username}) //Search to see if a user with the requested username already exists
+ // .then((user) => {
+  //  if(user) {
+      //If the user is found, send a response that it already exists
+     // return res.status(400).send(req.body.Username + 'already exists');
+    //}else{
+     // Users
+      //.create({
+       // Username: req.body.Username. 
+       // Password: 
+      //})
+    //}
+   //}
+ // })
+//})
 
 
 //allow user to update info (username)
