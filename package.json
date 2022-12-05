@@ -1,30 +1,34 @@
 {
   "name": "movie-api",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johannaoen/movie-api.git"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/johannaoen/movie-api/issues"
+  },
+  "homepage": "https://github.com/johannaoen/movie-api#readme",
   "dependencies": {
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.21",
-    "mongoose": "^6.7.4",
+    "mongoose": "^6.8.0",
     "morgan": "^1.10.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "eslint": "^8.26.0"
-  },
-  "description": ""
+  }
 }
