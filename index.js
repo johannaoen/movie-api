@@ -15,6 +15,8 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
+mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });
+
 //const cors = require ('cors');
 //let allowedOrigins = ['*'];
 //app.use(cors({
