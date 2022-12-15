@@ -8,6 +8,9 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const Models = require('./models.js');
 
+const Movies = Models.Movie;
+const Users = Models.User;
+
 path = require('path');
 
 
@@ -17,18 +20,18 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });
 
-//const cors = require ('cors');
-//let allowedOrigins = ['*'];
-//app.use(cors({
-  //origin: (origin, callback) => {
-   // if(!origin) return callback (null, true);
-   // if(allowedOrigins.indexOf(origin) === -1){//if a specific origin isn't found on the list of allowed origins
-   // let message = 'The CORS policy for this application doesnt allow access from origin' + origin;
- // return callback(new Error(message), false);
-//}
-//return callback(null, true);
-//  }
-//}));
+const cors = require ('cors');
+let allowedOrigins = ['*'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if(!origin) return callback (null, true);
+    if(allowedOrigins.indexOf(origin) === -1){//if a specific origin isn't found on the list of allowed origins
+    let message = 'The CORS policy for this application doesnt allow access from origin' + origin;
+  return callback(new Error(message), false);
+}
+return callback(null, true);
+  }
+}));
 
 let auth = require('./auth')(app);
 
@@ -178,23 +181,33 @@ if (newUser.username){
 }
 });
 
-//app.post('/users', (req,res) => {
- // let hashedPassword = Users.hashPassword(req.body.Password);
- // Users.findOne({Username: req.body.Username}) //Search to see if a user with the requested username already exists
- // .then((user) => {
-  //  if(user) {
+app.post('/users', (req, res) => {
+  let hashedPassword = Users.hashPassword(req.body.Password);
+  Users.findOne({ Username: req.body.Username }) // Search to see if a user with the requested username already exists
+    .then((user) => {
+      if (user) {
       //If the user is found, send a response that it already exists
-     // return res.status(400).send(req.body.Username + 'already exists');
-    //}else{
-     // Users
-      //.create({
-       // Username: req.body.Username. 
-       // Password: 
-      //})
-    //}
-   //}
- // })
-//})
+        return res.status(400).send(req.body.Username + ' already exists');
+      } else {
+        Users
+          .create({
+            Username: req.body.Username,
+            Password: hashedPassword,
+            Email: req.body.Email,
+            Birthday: req.body.Birthday
+          })
+          .then((user) => { res.status(201).json(user) })
+          .catch((error) => {
+            console.error(error);
+            res.status(500).send('Error: ' + error);
+          });
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send('Error: ' + error);
+    });
+});
 
 
 //allow user to update info (username)
