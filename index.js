@@ -110,12 +110,6 @@ let movies = [
 
 
 
-app.get('/', (req, res) => {
-  // res.send('Welcome to my app!');
-  // responseText += '<small>Requested at: ' + req.requestTime + '</small>';
-  let responseText = "Welcome to myFlix app!";
-  res.send(responseText);
-});
 //Gets data on ALL movies
 app.get('/', (req, res) => {
   // res.send('Welcome to my app!');
@@ -181,33 +175,33 @@ if (newUser.username){
 }
 });
 
-app.post('/users', (req, res) => {
-  let hashedPassword = Users.hashPassword(req.body.Password);
-  Users.findOne({ Username: req.body.Username }) // Search to see if a user with the requested username already exists
-    .then((user) => {
-      if (user) {
+//app.post('/users', (req, res) => {
+  //let hashedPassword = Users.hashPassword(req.body.Password);
+  //Users.findOne({ Username: req.body.Username }) // Search to see if a user with the requested username already exists
+    //.then((user) => {
+      //if (user) {
       //If the user is found, send a response that it already exists
-        return res.status(400).send(req.body.Username + ' already exists');
-      } else {
-        Users
-          .create({
-            Username: req.body.Username,
-            Password: hashedPassword,
-            Email: req.body.Email,
-            Birthday: req.body.Birthday
-          })
-          .then((user) => { res.status(201).json(user) })
-          .catch((error) => {
-            console.error(error);
-            res.status(500).send('Error: ' + error);
-          });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).send('Error: ' + error);
-    });
-});
+       // return res.status(400).send(req.body.Username + ' already exists');
+      //} else {
+        //Users
+          //.create({
+           // Username: req.body.Username,
+            //Password: hashedPassword,
+            //Email: req.body.Email,
+           // Birthday: req.body.Birthday
+          //})
+          //.then((user) => { res.status(201).json(user) })
+         //.catch((error) => {
+           // console.error(error);
+           // res.status(500).send('Error: ' + error);
+          //});
+      //}
+    //})
+    //.catch((error) => {
+     // console.error(error);
+     // res.status(500).send('Error: ' + error);
+    //});
+//});
 
 
 //allow user to update info (username)
