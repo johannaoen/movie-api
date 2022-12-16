@@ -11,6 +11,8 @@ const Models = require('./models.js');
 const Movies = Models.Movie;
 const Users = Models.User;
 
+const {check, validationResult} = require('express-validator');
+
 path = require('path');
 
 
@@ -18,7 +20,7 @@ app.use(express.static('public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
-mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost:27017/[myFlixDB]', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const cors = require ('cors');
 let allowedOrigins = ['*'];
@@ -41,75 +43,6 @@ app.use(morgan('common'));
 app.use(express.static('public'));
 
 
-let users = [
-  {
-    id: 1,
-    name: 'Johanna',
-    username: 'johanna123',
-    password: '1234',
-    favoriteMovies: ['Frozen']
-  },
-  {
-    id: 2,
-    name: 'Bob',
-    username : 'Bob2', 
-    password: '12345',
-    favoriteMovies: ['Harry Potter 1']
-  },
-]
-
-let movies = [
-  {
-    "Title": "Harry Potter 1",
-    "Description": "Yer a wizard Harry.",
-    "Genre": {
-      "Name": "Adventure",
-      "Description": "In film and television, adventure is a category of a narrative fiction or semi-fiction"
-    },
-    "Director": {
-      "Name": "J.K. Rowling",
-      "Bio" : "J.K Rowling Biography, Height, Weight, Age, Measurements, Net Worth, Family, Wiki & much more! .",
-      "Birth" : 1995,
-    },
-    "ImageUrl" : "jkrowling.jpg",
-    "Featured" : false
-  },
-
-  {
-    "Title": "Harry Potter 2",
-    "Description": "Yer a wizard Harry.",
-    "Genre": {
-      "Name": "Adventure",
-      "Description": "In film and television, adventure is a category of a narrative fiction or semi-fiction"
-    },
-    "Director": {
-      "Name": "J.K. Rowling",
-      "Bio" : "J.K Rowling Biography, Height, Weight, Age, Measurements, Net Worth, Family, Wiki & much more! .",
-      "Birth" : 1995,
-    },
-    "ImageUrl" : "jkrowling.jpg",
-    "Featured" : false
-  },
-
-  {
-    "Title": "Frozen",
-    "Description": "Ana and Elsa lose both of their parents in a tragic shipwreck are now tasked with ruling over the kingdom of Arendelle. However, they must navigate Elsa's destructive ice powers together.",
-    "Genre": {
-      "Name": "Family",
-      "Description": "In film and television, Family is a category of a narrative fiction or semi-fiction suitable for family and kids."
-    },
-    "Director": {
-      "Name": "John Doe",
-      "Bio" : "John Doe is an American writer, director and producer of film and television. He is best known for creating the movie series Frozen 1 and Frozen 2.",
-      "Birth" : 1961,
-    },
-    "ImageUrl" : "frozen.png",
-    "Featured" : false
-  }
-];
-
-
-
 //Gets data on ALL movies
 app.get('/', (req, res) => {
   // res.send('Welcome to my app!');
@@ -117,6 +50,7 @@ app.get('/', (req, res) => {
   let responseText = "Welcome to myFlix app!";
   res.send(responseText);
 });
+
 //Gets data on ALL movies
 app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) => {
   Movies.find()
@@ -163,19 +97,65 @@ app.get('/movies/director/:directorName', (req, res) => {
     res.status(400).send("no such director")
   }
 })
+app.get('/users', (req, res) => {
+  Users.find()
+  .then((users) => {
+    res.status(201).json(users);
+  })
+  .catch((error) => {
+    console.error(error);
+    res.status(500).send('Error: ' + error);
+  });
+})
+
 //allow new users to register
 app.post('/users', (req, res) => {
-let newUser = req.body; //this is possible due to the body parser
-if (newUser.username){
- newUser.id = uuid.v4(); //uuid.v4() generates unique id
-  users.push(newUser);
-  res.status(201).json(newUser);
-}else {
- res.status(400).send('New user requires username');
-}
+  // let hashedPassword = Users.hashPassword(req.body.Password);
+  Users.findOne({ Username: req.body.Username }) // Search to see if a user with the requested username already exists
+    .then((user) => {
+      if (user) {
+      // If the user is found, send a response that it already exists
+       return res.status(400).send(req.body.Username + ' already exists');
+      } else {
+        Users
+          .create({
+           Username: req.body.Username,
+            Password: req.body.Password,
+            Email: req.body.Email,
+           Birthday: req.body.Birthday
+          })
+          .then((user) => { res.status(201).json(user) })
+         .catch((error) => {
+           console.error(error);
+           res.status(500).send('Error: ' + error);
+          });
+      }
+    })
+    .catch((error) => {
+     console.error(error);
+     res.status(500).send('Error: ' + error);
+    });
 });
 
-//app.post('/users', (req, res) => {
+
+//app.post('/users'
+//Validation logic here for request
+//you can either use a chain of methods like not().Empty()
+//which means "opposite of isEmpty" in plain english "is not empty"
+//or use .isLength({min:5}) which means
+//minimum value of 5 characters are only allowed
+//[
+  //check('Username', 'Username is required').isLength({min: 5}),
+  //check('Username', 'Username contains non alphanumeric characters -not allowed.').isAlphanumeric,
+  //check('Password', 'Password is required').not().isEmpty()
+//], (req, res) => {
+//check the validation object for errors
+//let errors = validationResult(req);
+
+//if (!errors.isEmpty()) {
+  //return res.status(422).json({errors:errors.array() });
+//}
+
   //let hashedPassword = Users.hashPassword(req.body.Password);
   //Users.findOne({ Username: req.body.Username }) // Search to see if a user with the requested username already exists
     //.then((user) => {
