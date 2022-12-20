@@ -63,21 +63,23 @@ app.get('/movies', passport.authenticate('jwt', { session: false }), (req, res) 
     });
 });
 //Gets data about single movie by title
-app.get('/movies/:title', (req, res) => {
-  const {title} =  req.params;
-  const movie = movies.find(movie => movie.Title === title);
+app.get('/movies/:title', passport.authenticate('jwt', { session: false}), (req, res) => {
 
-  if (movie) {
+ Movies.findOne({Title: req.params.title})
+
+  .then((movie) => {
     res.status(200).json(movie);
-  } else {
-    res.status(400).send("no such movie")
-  }
-})
+  } )
+  .catch((err) => {
+    console.error(err);
+    res.status(500).send('Error: ' + err);
+  });
+});
 
 // READ genre by name
-app.get('/movies/genre/:genreName', (req, res) => {
+app.get('/movies/genre/:genreName', passport.authenticate('jwt', { session: false}), (req, res) => {
   const { genreName } =  req.params;
-  const genre = movies.find(movie => movie.Genre.Name === genreName).Genre; // the the .Genre will enable it return just the genre object
+  const genre = Movies.find(movie => movie.Genre.Name === genreName).Genre; // the the .Genre will enable it return just the genre object
 
   if (genre) {
     res.status(200).json(genre);
@@ -87,25 +89,15 @@ app.get('/movies/genre/:genreName', (req, res) => {
 })
 
 //get data about a director by name (bio, birth year, death yr)
-app.get('/movies/director/:directorName', (req, res) => {
+app.get('/movies/director/:directorName', passport.authenticate('jwt', { session: false}),(req, res) => {
   const { directorName } =  req.params;
-  const director = movies.find(movie => movie.Director.Name === directorName).Director; // the the .Genre will enable it return just the genre object
+  const director = Movies.find(movie => movie.Director.Name === directorName).Director; // the the .Genre will enable it return just the genre object
 
   if (director) {
     res.status(200).json(director);
   } else {
     res.status(400).send("no such director")
   }
-})
-app.get('/users', (req, res) => {
-  Users.find()
-  .then((users) => {
-    res.status(201).json(users);
-  })
-  .catch((error) => {
-    console.error(error);
-    res.status(500).send('Error: ' + error);
-  });
 })
 
 //allow new users to register
@@ -185,8 +177,8 @@ app.post('/users', (req, res) => {
 
 
 //allow user to update info (username)
-app.put('/users/:name/:username', (req, res) => {
-  let user = users.find((user) => {return user.name === req.params.name });
+app.put('/users/:name/:username', passport.authenticate('jwt', { session: false}), (req, res) => {
+  let user = Users.find((user) => {return user.name === req.params.name });
 
   if (user) {
     res.status(201).send('User with the name' + req.params.name + 'changed username to' + req.params.username);
@@ -195,44 +187,61 @@ app.put('/users/:name/:username', (req, res) => {
   }
 });
 //allow users to ADD a movie to their list of favorites(showing text that move has been added)
-app.post('/users/:name/:movieTitle', (req, res) => {
-	const { name, movieTitle } = req.params;
-
-	let user = users.find((user) => user.name == name);
-
-	if (user) {
-		user.favoriteMovies.push(movieTitle);
-		res.status(200).send(
-			`Movie has been added to user array`
-		);
-	} else {
-		res.status(400).send('User not found');
-	}
-});
-
+app.post('/users/:username/movies/:movieID', passport.authenticate('jwt', { session: false}), (req, res) => {
+	Users.findOneAndUpdate({Username:req.params.username}, {
+    $push: {favoriteMovies: req.params.movieID}
+  },
+  {new: true}, //This line makes sure that the updated document is returned
+  (err, updatedUser) => {
+    if(err) {
+      console.error(err);
+      res.status(500).send('Error: ' + err);
+    }else {
+      res.json(updatedUser);
+    }
+    });
+  });
+  
 //allow users to DELETE a movie from their list of favorites (showing text)
-app.delete('/users/:name/:movieTitle', (req, res) => {
-	const { name, movieTitle } = req.params;
+app.delete('/users/:username/:movieID',passport.authenticate('jwt', { session: false}), (req, res) => {
+	Users.findOneAndUpdate(
+    { Username: req.params.username },
+    {
+        $pull: { FavoriteMovies: req.params.movieID },
+    },
+    { new: true },
+    (err, updatedUser) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Error ' + err);
+        } else {
+            res.json(updatedUser);
+        }
+    }
+);
+}
+);
 
-	let user = users.find((user) => user.name == name);
-
-	if (user) {
-		user.favoriteMovies = user.favoriteMovies.filter(
-			(title) => title !== movieTitle
-		);
-		res.status(200).send(
-			`Movie has been removed from user array`
-		);
-	} else {
-		res.status(400).send('User not found');
-	}
-});
+//get all users
+app.get('/users',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+      Users.find()
+          .then((users) => {
+              res.status(201).json(users);
+          })
+          .catch((err) => {
+              console.log(err);
+              res.status(500).send('Error: ' + err);
+          });
+  }
+);
 
  //allow existing users to deregister(text that user email has been removed)
  app.delete('/users/:name', (req, res) => {
 	const { name } = req.params;
 
-	let user = users.find((user) => user.name == name);
+	let user = Users.find((user) => user.name == name);
 
 	if (user) {
 		res.status(200).send(`User has been removed from the database`);
