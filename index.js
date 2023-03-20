@@ -13,6 +13,9 @@ const Users = Models.User;
 
 const {check, validationResult} = require('express-validator');
 
+const DB_USER = 'johannaoen';
+const PASSWORD = encodeURIComponent('monK@1y@h'); 
+
 path = require('path');
 
 
@@ -21,6 +24,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 
 mongoose.connect('mongodb://localhost:27017/[myFlixDB]', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb+srv://johannaoen:<monK@1y@h>@myFlixDB.c3hcvtw.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const cors = require ('cors');
 let allowedOrigins = ['*'];
